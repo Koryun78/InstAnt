@@ -13,5 +13,7 @@ UCLASS()
 class INSTANT_API AInstantPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+public:
+	virtual void FlushPressedKeys() override;
 };

@@ -6,12 +6,12 @@
 #include "GameFramework/GameModeBase.h"
 #include "InstantGameModeBase.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class INSTANT_API AInstantGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+public:
+
+	AInstantGameModeBase();
 };
