@@ -36,9 +36,7 @@ AInstantCharacter::AInstantCharacter()
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(
-		TEXT("CameraBoom"));
-
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 350.0f;
 	CameraBoom->SocketOffset = FVector(0.0f, 0.0f, 60.0f);
@@ -69,11 +67,11 @@ void AInstantCharacter::BeginPlay()
 
 	if (DefaultAttributesEffect)
 	{
-		FGameplayEffectContextHandle Context =AbilitySystemComponent->MakeEffectContext();
+		FGameplayEffectContextHandle Context = AbilitySystemComponent->MakeEffectContext();
 
 		Context.AddSourceObject(this);
 
-		const FGameplayEffectSpecHandle Spec =AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributesEffect, 1.0f, Context);
+		const FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributesEffect, 1.0f, Context);
 
 		if (Spec.IsValid())
 		{
@@ -84,6 +82,60 @@ void AInstantCharacter::BeginPlay()
 	if (PrimaryAbility)
 	{
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(PrimaryAbility, 1));
+	}
+}
+
+void AInstantCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!bIsSprinting)
+	{
+		return;
+	}
+
+	if (AttributeSet->GetStamina() <= 0.0f ||
+		AttributeSet->GetHealth() <= 0.0f)
+	{
+		StopSprinting();
+		return;
+	}
+
+	if (!GetCharacterMovement()->IsMovingOnGround() ||
+		GetVelocity().SizeSquared2D() <= 1.0f)
+	{
+		return;
+	}
+
+	SprintStaminaElapsed += DeltaTime;
+
+	const float Interval = FMath::Max(StaminaCostInterval, 0.05f);
+
+	while (SprintStaminaElapsed >= Interval)
+	{
+		const FGameplayEffectSpecHandle Spec = AbilitySystemComponent->MakeOutgoingSpec(StaminaCostEffect, 1.0f, AbilitySystemComponent->MakeEffectContext());
+
+		if (!Spec.IsValid())
+		{
+			StopSprinting();
+			return;
+		}
+
+		const FActiveGameplayEffectHandle Result = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+
+		if (!Result.WasSuccessfullyApplied())
+		{
+			StopSprinting();
+			return;
+		}
+
+		SprintStaminaElapsed -= Interval;
+
+		if (AttributeSet->GetStamina() <= 0.0f)
+		{
+			StopSprinting();
+			return;
+		}
 	}
 }
 
@@ -105,8 +157,7 @@ void AInstantCharacter::UnPossessed()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 }
 
-void AInstantCharacter::EndPlay(
-	const EEndPlayReason::Type EndPlayReason)
+void AInstantCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	RemoveInputMappingContext();
 
@@ -126,13 +177,11 @@ bool AInstantCharacter::IsSprinting() const
 	return bIsSprinting;
 }
 
-void AInstantCharacter::SetupPlayerInputComponent(
-	UInputComponent* PlayerInputComponent)
+void AInstantCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	UEnhancedInputComponent* Input =
-		Cast<UEnhancedInputComponent>(PlayerInputComponent);
+	UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 
 	if (!Input)
 	{
@@ -168,12 +217,9 @@ void AInstantCharacter::SetupPlayerInputComponent(
 
 void AInstantCharacter::AddInputMappingContext()
 {
-	const APlayerController* PlayerController =
-		Cast<APlayerController>(GetController());
+	const APlayerController* PlayerController = Cast<APlayerController>(GetController());
 
-	if (!DefaultMappingContext ||
-		!PlayerController ||
-		!PlayerController->IsLocalController())
+	if (!DefaultMappingContext || !PlayerController || !PlayerController->IsLocalController())
 	{
 		return;
 	}

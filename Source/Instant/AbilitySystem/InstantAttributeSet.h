@@ -28,7 +28,21 @@ public:
 
 	INSTANT_ATTRIBUTE_ACCESSORS(UInstantAttributeSet, MaxHealth);
 
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
+	FGameplayAttributeData Stamina;
+	
+	INSTANT_ATTRIBUTE_ACCESSORS(UInstantAttributeSet, Stamina);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes")
+	FGameplayAttributeData MaxStamina;
+
+	INSTANT_ATTRIBUTE_ACCESSORS(UInstantAttributeSet, MaxStamina);
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 protected:
 	UFUNCTION()
@@ -37,4 +51,9 @@ protected:
 	UFUNCTION()
 	void OnRep_MaxHealth(const FGameplayAttributeData& OldValue);
 
+	UFUNCTION()
+	void OnRep_Stamina(const FGameplayAttributeData& OldValue);
+
+	UFUNCTION()
+	void OnRep_MaxStamina(const FGameplayAttributeData& OldValue);
 };

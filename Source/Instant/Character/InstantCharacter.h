@@ -45,10 +45,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual void EndPlay(
-		const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Tick(float DeltaTime) override;
 
-	// Камера
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	// Camera
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -56,15 +57,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
 
-	// Скорости
+	// Sprint
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement",
-		meta = (ClampMin = "0"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (ClampMin = "0"))
 	float WalkSpeed = 400.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement",
-		meta = (ClampMin = "0"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (ClampMin = "0"))
 	float SprintSpeed = 750.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement", meta = (ClampMin = "0.05"))
+	float StaminaCostInterval = 0.2f;
 
 	// GAS
 
@@ -80,7 +82,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "GAS")
 	TSubclassOf<UGameplayAbility> PrimaryAbility;
 
-	// Назначаются в Blueprint персонажа
+	UPROPERTY(EditDefaultsOnly, Category = "GAS")
+	TSubclassOf<UGameplayEffect> StaminaCostEffect;
+
+	// Imput Maping
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> DefaultMappingContext;
@@ -107,6 +112,7 @@ private:
 	void StartSprinting();
 
 	bool bIsSprinting = false;
+	float SprintStaminaElapsed = 0.0f;
 
 	TWeakObjectPtr<UEnhancedInputLocalPlayerSubsystem> InputSubsystem;
 };
